@@ -102,7 +102,7 @@ class Day12:
                 number_of_possible_dirs = 0
                 for idx, dir in enumerate(list_dir_effort):
                     if dir != "X":
-                        if track.curr_height == "z":
+                        if track.curr_height == "z" and dir == "E":
                             print("finisched")
                         delta = ord(dir) - ord(track.curr_height)
                         if delta in [1, 0]:
