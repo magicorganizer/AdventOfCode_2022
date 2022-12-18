@@ -8,29 +8,30 @@ class Direction(Enum):
     UNDEFINED = 4
 
 class Track:
-    def __init__(self, track_name):
+    def __init__(self, track_name, pos=[0, 0], track=[]):
         self.track_name = track_name
-        self.pos = [0, 0]
+        self.pos = pos
         self.curr_height = chr(ord("a") - 1)
         self.track_status = "searching"  # finished, blocked
         self.next_step = Direction.UNDEFINED
         self.next_step_quality = 100
-        self.track = []
+        self.track = track
 
     def __str__(self):
         return f"Track {self.track_name} {self.pos} H:{self.curr_height} St:{self.track_status} Dir:{self.next_step} L:{self.track}"
 
     def step(self):
-        self.track.append(self.pos)
         if self.next_step == 0:
-            self.pos[0] -= 1
-        elif self.next_step == 1:
             self.pos[1] -= 1
+        elif self.next_step == 1:
+            self.pos[0] -= 1
         elif self.next_step == 2:
-            self.pos[0] += 1
-        elif self.next_step == 3:
             self.pos[1] += 1
+        elif self.next_step == 3:
+            self.pos[0] += 1
+        self.track.append([self.pos[1], self.pos[0]])
         print(self.track_name, self.pos)
+
 class Day12:
     def __init__(self):
         self.commands = []
@@ -39,7 +40,7 @@ class Day12:
         self.map_width = 0
         self.map_height = 0
         self.curr_track_idx = 0
-        self.tracks = [Track("init_track")]
+        self.tracks = [Track("init_track", [0,0], [[0,0]])]
         self.track_backlog = []
         self.back_track_idx = 1
 
@@ -63,14 +64,14 @@ class Day12:
                 index = row_list.index("S")
                 if -1 != index:
                     print(f"({row_idx}, {index}")
-                    self.pos[0] = index
-                    self.pos[1] = row_idx
+                    self.pos[0] = row_idx
+                    self.pos[1] = index
 
     def get_best_way(self, pos):
-        l = self.map[pos[0]-1][pos[1]] if pos[0] > 0 else "X"
-        u = self.map[pos[0]][pos[1]-1] if pos[1] > 0 else "X"
-        r = self.map[pos[0]+1][pos[1]] if pos[0] < self.map_width - 1 else "X"
-        d = self.map[pos[0]][pos[1]+1] if pos[1] < self.map_height - 1 else "X"
+        l = self.map[pos[0]][pos[1]-1] if pos[1] > 0 else "X"
+        u = self.map[pos[0]-1][pos[1]] if pos[0] > 0 else "X"
+        r = self.map[pos[0]][pos[1]+1] if pos[1] < self.map_width - 1 else "X"
+        d = self.map[pos[0]+1][pos[1]] if pos[0] < self.map_height - 1 else "X"
         return [l, u, r, d]
 
     def print_map(self):
@@ -99,9 +100,10 @@ class Day12:
                 list_dir_effort = self.get_best_way(track.pos)
                 continue_curr_track = True
                 number_of_possible_dirs = 0
-                temp_track = track
                 for idx, dir in enumerate(list_dir_effort):
                     if dir != "X":
+                        if track.curr_height == "z":
+                            print("finisched")
                         delta = ord(dir) - ord(track.curr_height)
                         if delta in [1, 0]:
                             list_of_dirs.append(idx)
@@ -113,25 +115,29 @@ class Day12:
                                 continue_curr_track = False
                             else:
                                 # copy track for next possible way
-                                new_track = temp_track
+                                new_track = Track(f"back_track_{self.back_track_idx}", track.pos.copy(), track.track.copy())
                                 new_track.next_step_quality = delta
                                 new_track.next_step = idx
-                                new_track.track_name = f"back_track_{self.back_track_idx}"
                                 self.back_track_idx += 1
                                 self.track_backlog.append(new_track)
                 if number_of_possible_dirs == 0:
                     track.track_status = "blocked"
-                self.mark_position_in_matrix(save_track_pos, list_of_dirs)
+                if list_of_dirs:
+                    self.mark_position_in_matrix(save_track_pos, list_of_dirs)
 
         for back_track in self.track_backlog:
             self.tracks.append(back_track)
         self.track_backlog.clear()
 
-        for track in self.tracks:
-            track.step()
-            track.curr_height = self.map[track.pos[0]][track.pos[1]]
+        for idx, track in enumerate(self.tracks):
             if track.track_status == "searching":
-                ret_val = True
+                track.step()
+                try:
+                    track.curr_height = self.map[track.pos[0]][track.pos[1]]
+                except IndexError:
+                    print("trap")
+                if track.track_status == "searching":
+                    ret_val = True
         self.print_map()
         return ret_val
 
