@@ -18,7 +18,7 @@ class Track:
         self.track = track
 
     def __str__(self):
-        return f"Track {self.track_name} {self.pos} H:{self.curr_height} St:{self.track_status} Dir:{self.next_step} L:{self.track}"
+        return f"Track {self.track_name} Steps:{len(self.track)} {self.pos} H:{self.curr_height} St:{self.track_status} Dir:{self.next_step} L:{self.track}"
 
     def step(self):
         if self.next_step == 0:
@@ -30,6 +30,9 @@ class Track:
         elif self.next_step == 3:
             self.pos[0] += 1
         self.track.append([self.pos[1], self.pos[0]])
+        if puzzle.map[self.pos[0]][self.pos[1]] == "E":
+            self.track_status = "finished"
+
         print(self.track_name, self.pos)
 
 class Day12:
@@ -100,18 +103,19 @@ class Day12:
                 list_dir_effort = self.get_best_way(track.pos)
                 continue_curr_track = True
                 number_of_possible_dirs = 0
+
                 for idx, dir in enumerate(list_dir_effort):
                     if dir != "X":
                         if track.curr_height == "z" and dir == "E":
-                            print("finisched")
-                        delta = ord(dir) - ord(track.curr_height)
-                        if delta in [1, 0]:
+                            delta = 1
+                        else:
+                            delta = ord(dir) - ord(track.curr_height)
+                        if delta in [0, 1]:
                             list_of_dirs.append(idx)
                             number_of_possible_dirs += 1
                             if continue_curr_track:
                                 track.next_step_quality = delta
                                 track.next_step = idx
-                                print(f"{Direction(idx).name} {delta}")
                                 continue_curr_track = False
                             else:
                                 # copy track for next possible way
@@ -138,7 +142,7 @@ class Day12:
                     print("trap")
                 if track.track_status == "searching":
                     ret_val = True
-        self.print_map()
+        #self.print_map()
         return ret_val
 
 
@@ -147,7 +151,8 @@ puzzle.load_puzzle_input()
 puzzle.fill_map()
 puzzle.find_start_point()
 while 1:
-    puzzle.print_tracks()
+    #puzzle.print_tracks()
     if not puzzle.find_track():
-
         break
+
+puzzle.print_tracks()
