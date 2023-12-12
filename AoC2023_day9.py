@@ -6,6 +6,7 @@ class Sequence:
     def __init__(self, sequence_string):
         self.sequence = [int(item) for item in sequence_string.split()]
         self.prediction = 0
+        self.neg_prediction = 0
         self.list_of_temp_sequences = list()
         self.list_of_temp_sequences.append(self.sequence)
         self.do_prediction()
@@ -19,7 +20,11 @@ class Sequence:
             # calculate difference between elements... len new list is len old list - 1
             difference_list = [j-i for i, j in zip(last_list[:-1], last_list[1:])]
             self.list_of_temp_sequences.append(difference_list)
-            if sum(difference_list) == 0:
+            all_elements_null = True
+            for item in difference_list:
+                if item != 0:
+                    all_elements_null = False
+            if all_elements_null:
                 break
 
         # calculate prediction by backwards adding all last list elements
@@ -28,6 +33,10 @@ class Sequence:
             last_elements.append(templist[-1])
 
         self.prediction = sum(last_elements)
+
+        for templist in reversed(self.list_of_temp_sequences):
+            self.neg_prediction *= -1
+            self.neg_prediction = templist[0] + self.neg_prediction
 
 
 
@@ -59,6 +68,7 @@ class AoC2023_Day9:
 
         for sequence in self.list_of_sequences:
             self.answer += sequence.prediction
+            self.answer2 += sequence.neg_prediction
             print(sequence)
 
     def run_AoC_part2(self):
