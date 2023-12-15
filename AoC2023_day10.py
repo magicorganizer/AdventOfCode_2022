@@ -1,4 +1,6 @@
 import logging
+import numpy as np
+from matplotlib import pyplot as plt
 
 logging.basicConfig(level=logging.INFO, filename='AoC2023.log', filemode='w')
 
@@ -62,26 +64,58 @@ class Point:
 class Path:
     def __init__(self, tupel_start, matrix_ref):
         self.start = Point(tupel_start, matrix_ref)
-        self.curr_point = self.start
+        self.curr_point1 = self.start
+        self.curr_point2 = self.start
         self.matrix_ref = matrix_ref
         self.path1 = [self.start]
         self.path2 = [self.start]
-        self.search_path()
+        self.split_path()
+        boTrack1 = True
+        boTrack2 = True
+        while boTrack1 and boTrack2:
+            boTrack1 = self.follow_path(self.path1)
+            boTrack2 = self.follow_path(self.path2)
+        print(f"done {len(self.path1)}/{len(self.path2)}")
+        self.answer = max(len(self.path1), len(self.path2)) - 1
+        pass
+
+    def follow_path(self, path):
+        curr_point = path[-1]
+        for neigbor_pos in curr_point.get_compatible_neighbors():
+            if (self.is_point_new(self.path1, neigbor_pos) and
+                    self.is_point_new(self.path2, neigbor_pos)):
+                curr_point = Point(neigbor_pos, self.matrix_ref)
+                path.append(curr_point)
+                print(curr_point.pos, curr_point.char)
+                return True
+        return False
 
     def search_path(self):
         loop_complete = False
         while not loop_complete:
             found_new_point = False
-            for neigbor_pos in self.curr_point.get_compatible_neighbors():
+            for neigbor_pos in self.curr_point1.get_compatible_neighbors():
                 if self.is_point_new(self.path1, neigbor_pos):
                     self.curr_point = Point(neigbor_pos, self.matrix_ref)
-                    self.path1.append(self.curr_point)
-                    print(self.curr_point.pos, self.curr_point.char)
+                    self.path1.append(self.curr_point1)
+                    print(self.curr_point1.pos, self.curr_point1.char)
                     found_new_point = True
-                    # abbruchkriterium fehlt
+
                     # bei S zwei pfade
                     # jeden pfad einzeln berechnen
             loop_complete = not found_new_point
+
+    def split_path(self):
+        list_neighbors = self.curr_point1.get_compatible_neighbors()
+        if self.is_point_new(self.path1, list_neighbors[0]):
+            self.curr_point1 = Point(list_neighbors[0], self.matrix_ref)
+            self.path1.append(self.curr_point1)
+            print("path1 ", self.curr_point1.pos, self.curr_point1.char)
+        if self.is_point_new(self.path2, list_neighbors[1]):
+            self.curr_point2 = Point(list_neighbors[1], self.matrix_ref)
+            self.path2.append(self.curr_point2)
+            print("path2 ",self.curr_point2.pos, self.curr_point2.char)
+
 
     def is_point_new(self, list_path, tupel_pos):
         for point in list_path:
@@ -115,7 +149,7 @@ class Matrix:
         self.matrix[y][x] = char
 
 class AoC2023_Day10:
-    DEBUG = True
+    DEBUG = False
 
     def __init__(self):
         self.commands = self.load_puzzle_input()
@@ -124,7 +158,7 @@ class AoC2023_Day10:
         self.grid_of_points = list()
         self.create_point_matrix()
         self.path = Path(self.find_start(), self.grid)
-        self.answer = 0
+        self.answer = self.path.answer
         self.answer2 = 0
 
     def load_puzzle_input(self):
@@ -171,3 +205,26 @@ puzzle.run_AoC()
 print(f"done! answer= {puzzle.answer}")
 puzzle.run_AoC_part2()
 print(f"done! answer2= {puzzle.answer2}")
+
+data = [(2, 2), (3, 2), (4, 1), (4, 0), (3, 0), (3, 1), (4, 2),
+        (4, 3), (4, 4), (3, 3), (3, 4), (2, 4), (2, 3), (1, 4),
+        (0, 4), (0, 3), (1, 3), (0, 2), (1, 2), (0, 1), (0, 0),
+        (1, 0), (1, 1), (2, 0), (2, 1)]
+data = puzzle.path.path1
+for i in range(len(data) -1):
+  x1 = data[i].pos[0]
+  y1 = data[i].pos[1]
+  x2 = data[i+1].pos[0]
+  y2 = data[i+1].pos[1]
+  plt.plot([x1, x2], [y1, y2], c='blue')
+  plt.scatter(x1, y1, c='blue')
+
+data = puzzle.path.path2
+for i in range(len(data) -1):
+  x1 = data[i].pos[0]
+  y1 = data[i].pos[1]
+  x2 = data[i+1].pos[0]
+  y2 = data[i+1].pos[1]
+  plt.plot([x1, x2], [y1, y2], c='red')
+  plt.scatter(x1, y1, c='red')
+plt.show()
