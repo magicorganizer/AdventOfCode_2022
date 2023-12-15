@@ -65,19 +65,23 @@ class Path:
         self.curr_point = self.start
         self.matrix_ref = matrix_ref
         self.path1 = [self.start]
+        self.path2 = [self.start]
         self.search_path()
 
     def search_path(self):
         loop_complete = False
         while not loop_complete:
+            found_new_point = False
             for neigbor_pos in self.curr_point.get_compatible_neighbors():
                 if self.is_point_new(self.path1, neigbor_pos):
                     self.curr_point = Point(neigbor_pos, self.matrix_ref)
                     self.path1.append(self.curr_point)
                     print(self.curr_point.pos, self.curr_point.char)
+                    found_new_point = True
                     # abbruchkriterium fehlt
                     # bei S zwei pfade
                     # jeden pfad einzeln berechnen
+            loop_complete = not found_new_point
 
     def is_point_new(self, list_path, tupel_pos):
         for point in list_path:
