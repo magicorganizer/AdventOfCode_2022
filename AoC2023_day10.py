@@ -73,20 +73,20 @@ class Path:
         boTrack1 = True
         boTrack2 = True
         while boTrack1 and boTrack2:
-            boTrack1 = self.follow_path(self.path1)
-            boTrack2 = self.follow_path(self.path2)
+            boTrack1 = self.follow_path(self.path1, "path1 ")
+            #boTrack2 = self.follow_path(self.path2, "path2 ")
         print(f"done {len(self.path1)}/{len(self.path2)}")
         self.answer = max(len(self.path1), len(self.path2)) - 1
         pass
 
-    def follow_path(self, path):
+    def follow_path(self, path, name_string):
         curr_point = path[-1]
         for neigbor_pos in curr_point.get_compatible_neighbors():
             if (self.is_point_new(self.path1, neigbor_pos) and
                     self.is_point_new(self.path2, neigbor_pos)):
                 curr_point = Point(neigbor_pos, self.matrix_ref)
                 path.append(curr_point)
-                print(curr_point.pos, curr_point.char)
+                print(name_string, curr_point.pos, curr_point.char)
                 return True
         return False
 
@@ -213,18 +213,18 @@ data = [(2, 2), (3, 2), (4, 1), (4, 0), (3, 0), (3, 1), (4, 2),
 data = puzzle.path.path1
 for i in range(len(data) -1):
   x1 = data[i].pos[0]
-  y1 = data[i].pos[1]
+  y1 = data[i].pos[1] * -1
   x2 = data[i+1].pos[0]
-  y2 = data[i+1].pos[1]
+  y2 = data[i+1].pos[1] * -1
   plt.plot([x1, x2], [y1, y2], c='blue')
   plt.scatter(x1, y1, c='blue')
 
 data = puzzle.path.path2
 for i in range(len(data) -1):
   x1 = data[i].pos[0]
-  y1 = data[i].pos[1]
+  y1 = data[i].pos[1] * -1
   x2 = data[i+1].pos[0]
-  y2 = data[i+1].pos[1]
+  y2 = data[i+1].pos[1] * -1
   plt.plot([x1, x2], [y1, y2], c='red')
   plt.scatter(x1, y1, c='red')
 plt.show()
